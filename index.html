@@ -94,7 +94,7 @@
             // update ISS position
             const spaceStation = document.getElementById("space-station");
             const altitude = data.altitude * 1000; // convert to meters
-            spaceStation.setAttribute("position",'${altitude * Math.sin(issLat)} ${altitude} ${altitude * Math.cos(issLat)}');
+            spaceStation.setAttribute("position",`${altitude * Math.sin(issLat)} ${altitude} ${altitude * Math.cos(issLat)}`);
 
         // update text
         const text = document.querySelector(
