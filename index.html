@@ -1,133 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>ISS Distance Calculator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<html>
+<head>
+    <title>AR & VR Experiences</title>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
-      #info {
-        position: absolute;
-        top: 0;
-        width: 100%;
-        text-align: center;
-        z-index: 1;
-        color: white;
-        font-family: sans-serif;
-        font-size: 1.5em;
-        font-weight: bold;
-        text-shadow: 2px 2px 5px black;
-      }
-      #distance {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1;
-        color: white;
-        font-family: sans-serif;
-        font-size: 1em;
-        font-weight: bold;
-        text-shadow: 2px 2px 5px black;
-      }
-    </style>
-  </head>
-  <body style="margin: 0px; overflow: hidden;">
-    <div id="info">This application uses your current location to display the International Space Station.</div>
-    <a-scene
-      embedded
-      vr-mode-ui="enabled: true"
-      arjs="sourceType: webcam; debugUIEnabled: true;"
-      renderer="webgl"
-    >
-      <a-sky color="#000"></a-sky>
-      <a-entity
-        id="space-station"
-        position="0 10 -100"
-        scale="0.02 0.02 0.02"
-        gltf-model="https://cdn.jsdelivr.net/gh/nasa/NASA-3D-Resources/models/iss/iss.gltf"
-        animation="property: position; to: 0 10 100; dur: 5000; loop: true; easing: linear"
-      >
-      </a-entity>
-      <a-camera gps-camera rotation-reader fov="100"></a-camera>
-      <a-text
-        value=""
-        position="-0.5 -0.3 -1"
-        align="center"
-        color="white"
-        width="2"
-        gps-entity-place
-      ></a-text>
-      <a-text
-        id="distance"
-        value=""
-        position="-0.5 -0.4 -1"
-        align="center"
-        color="white"
-        width="2"
-      ></a-text>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+</head>
+<body>
+
+    <a-scene vr-mode-ui="enabled: false" embedded arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;">
+
+        <a-entity camera look-controls></a-entity>
+
+        <a-marker type='nft' url='https://raw.githack.com/AR-js-org/AR.js/master/data/images/space-station.nft'>
+            <a-entity obj-model="obj: #space-station; mtl: #space-station-mtl" scale="0.02 0.02 0.02"></a-entity>
+                 </a-marker>
+
+        <a-entity id="space-station" position="0 0 0">
+            <a-entity id="space-station-obj" class="clickable" obj-model="obj: #space-station; mtl: #space-station-mtl" scale="0.02 0.02 0.02"></a-entity>
+        </a-entity>
+
     </a-scene>
 
     <script>
-      navigator.geolocation.getCurrentPosition(function (position) {
-        const userLat = position.coords.latitude;
-        const userLng = position.coords.longitude;
+        // Get user's location
+        navigator.geolocation.getCurrentPosition(function (position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
 
-        const issPosUrl = "https://api.wheretheiss.at/v1/satellites/25544";
-        fetch(issPosUrl)
-          .then((response) => response.json())
-          .then((data) => {
-            const issLat = data.latitude;
-            const issLng = data.longitude;
+            // Calculate the difference between the coordinates
+            var latDifference = latitude - 51.125;
+            var lonDifference = longitude - 0.125;
 
-            // update distance between user and ISS
-            const dist = distance(userLat, userLng, issLat, issLng).toFixed(0);
-        document.getElementById(
-          "distance"
-        ).textContent = `Distance to ISS: ${dist} meters`;
+            // Set the position of the space station
+            document.querySelector('#space-station-obj').object3D.position.set(latDifference, 0, lonDifference);
+        });
+      set(latDifference, 0, lonDifference);
+        });
 
-        // update text
-        const text = document.querySelector(
-          '[gps-entity-place="latitude: 0; longitude: 0;"]'
-        );
-        text.setAttribute("value", "International Space Station");
-        text.setAttribute(
-          "gps-entity-place",
-          `latitude: ${issLat}; longitude: ${issLng};`
-        );
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  });
+        // Add VR button
+        var vrButton = document.createElement('button');
+        vrButton.innerHTML = 'VR Mode';
+        vrButton.addEventListener('click', function () {
+            document.querySelector('a-scene').enterVR();
 
-  // function to calculate distance between two lat/lng points
-  function distance(lat1, lng1, lat2, lng2) {
-    const R = 6371e3; // metres
-    const φ1 = (lat1 * Math.PI) / 180;
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+            // Make the space station fly
+            document.querySelector('#space-station-obj').setAttribute('animation',
+                {
+                    property: 'position',
+                    to: '-10 15 -20',
+                    dur: 5000
+                });
+        });
+        document.querySelector('a-scene').appendChild(vrButton);
+    </script>
 
-    const a =
-      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) *
-        Math.cos(φ2) *
-        Math.sin(Δλ / 2) *
-        Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+<a-assets>
+    <a-asset-item id="space-station" src="https://raw.githack.com/AR-js-org/AR.js/master/data/models/space-station/space-station.obj"></a-asset-item>
+    <a-asset-item id="space-station-mtl" src="https://raw.githack.com/AR-js-org/AR.js/master/data/models/space-station/space-station.mtl"></a-asset-item>
+</a-assets>
 
-    const d = R * c;
 
-    return d;
-  }
+// Set the position of the space station
+        document.querySelector('#space-station-obj').object3D.position.set(latDifference, 0, lonDifference);
+    });
+
+    // Add VR button
+    var vrButton = document.createElement('button');
+    vrButton.innerHTML = 'VR Mode';
+    vrButton.addEventListener('click', function () {
+        document.querySelector('a-scene').enterVR();
+
+        // Make the space station fly
+        document.querySelector('#space-station-obj').setAttribute('animation',
+            {
+                property: 'position',
+                to: '-10 15 -20',
+                dur: 5000
+            });
+    });
+    document.querySelector('a-scene').appendChild(vrButton);
 </script>
+
 </body>
 </html>
+
+
