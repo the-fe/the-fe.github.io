@@ -47,12 +47,15 @@
       arjs="sourceType: webcam; debugUIEnabled: false;"
       renderer="webgl"
     >
+      <a-assets>
+        <iframe id="space-station" src='https://solarsystem.nasa.gov/gltf_embed/2378' width='100%' height='450px' frameborder='0'>
+      </a-assets>
+  
       <a-entity
-        id="space-station"
         position="0 0 0"
         rotation="0 180 0"
         scale="0.06 0.06 0.06"
-        gltf-model="https://cdn.jsdelivr.net/gh/nasa/NASA-3D-Resources/models/iss/iss.gltf"
+        gltf-model="space-station"
       >
       </a-entity>
       <a-camera gps-camera rotation-reader></a-camera>
@@ -94,6 +97,7 @@
 
             // update ISS position
             const spaceStation = document.getElementById("space-station");
+            console.log(spaceStation)
             const altitude = data.altitude * 1000; // convert to meters
             spaceStation.setAttribute("position",`${altitude * Math.sin(issLat)} ${altitude} ${altitude * Math.cos(issLat)}`);
 
