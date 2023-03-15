@@ -27,13 +27,13 @@
       }
       #distance {
         position: absolute;
-        bottom: 50px;
-        left: 50px;
+        top: 50%;
+        left: 50%;
         transform: translate(-50%, -50%);
         z-index: 1;
         color: white;
         font-family: sans-serif;
-        font-size: 1.5em;
+        font-size: 1em;
         font-weight: bold;
         text-shadow: 2px 2px 5px black;
       }
@@ -44,18 +44,19 @@
     <a-scene
       embedded
       vr-mode-ui="enabled: true"
-      arjs="sourceType: webcam; debugUIEnabled: false;"
+      arjs="sourceType: webcam; debugUIEnabled: true;"
       renderer="webgl"
     >
+      <a-sky color="#000"></a-sky>
       <a-entity
         id="space-station"
-        position="0 0 0"
-        rotation="0 180 0"
-        scale="0.06 0.06 0.06"
+        position="0 10 -100"
+        scale="0.02 0.02 0.02"
         gltf-model="https://cdn.jsdelivr.net/gh/nasa/NASA-3D-Resources/models/iss/iss.gltf"
+        animation="property: position; to: 0 10 100; dur: 5000; loop: true; easing: linear"
       >
       </a-entity>
-      <a-camera gps-camera rotation-reader></a-camera>
+      <a-camera gps-camera rotation-reader fov="100"></a-camera>
       <a-text
         value=""
         position="-0.5 -0.3 -1"
@@ -70,7 +71,7 @@
         position="-0.5 -0.4 -1"
         align="center"
         color="white"
-        width="6"
+        width="2"
       ></a-text>
     </a-scene>
 
@@ -88,14 +89,9 @@
 
             // update distance between user and ISS
             const dist = distance(userLat, userLng, issLat, issLng).toFixed(0);
-            document.getElementById(
-              "distance"
-            ).textContent = `Distance to ISS: ${dist} meters`;
-
-            // update ISS position
-            const spaceStation = document.getElementById("space-station");
-            const altitude = data.altitude * 1000; // convert to meters
-            spaceStation.setAttribute("position",`${altitude * Math.sin(issLat)} ${altitude} ${altitude * Math.cos(issLat)}`);
+        document.getElementById(
+          "distance"
+        ).textContent = `Distance to ISS: ${dist} meters`;
 
         // update text
         const text = document.querySelector(
