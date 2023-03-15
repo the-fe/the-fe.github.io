@@ -1,48 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>GeoAR.js demo</title>
+    <title>ISS Distance Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      #info {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        text-align: center;
+        z-index: 1;
+        color: white;
+        font-family: sans-serif;
+        font-size: 1.5em;
+        font-weight: bold;
+        text-shadow: 2px 2px 5px black;
+      }
+      #distance {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        z-index: 1;
+        color: white;
+        font-family: sans-serif;
+        font-size: 1.5em;
+        font-weight: bold;
+        text-shadow: 2px 2px 5px black;
+      }
     </style>
   </head>
-  <body>
-    <div>
-      <a-scene
-        embedded
-        vr-mode-ui="enabled: false"
-        arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
-        renderer="Webgl"
+  <body style="margin: 0px; overflow: hidden;">
+    <div id="info">This application uses your current location to display the International Space Station.</div>
+    <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      arjs="sourceType: webcam; debugUIEnabled: false;"
+      renderer="webgl"
+    >
+      <a-entity
+        id="space-station"
+        position="0 0 0"
+        rotation="0 180 0"
+        scale="0.02 0.02 0.02"
+        gltf-model="https://cdn.jsdelivr.net/gh/nasa/NASA-3D-Resources/models/iss/iss.gltf"
       >
-        <a-text
-          value="This content will always face you."
-          look-at="[gps-camera]"
-          scale="120 120 120"
-          id="ar-text"
-        ></a-text>
-        <a-camera gps-camera rotation-reader> </a-camera>
-        <h1 id="latitude-longitude"></h1>
-      </a-scene>
-    </div>
+      </a-entity>
+      <a-camera gps-camera rotation-reader></a-camera>
+      <a-text
+        value=""
+        position="-0.5 -0.3 -1"
+        align="center"
+        color="white"
+        width="2"
+        gps-entity-place
+      ></a-text>
+      <a-text
+        id="distance"
+        value=""
+        position="-0.5 -0.4 -1"
+        align="center"
+        color="white"
+        width="2"
+      ></a-text>
+    </a-scene>
 
     <script>
       navigator.geolocation.getCurrentPosition(function (position) {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
-        const arText = document.querySelector("#ar-text");
-        arText.setAttribute(
-          "gps-entity-place",
-          `latitude: ${latitude}; longitude: ${longitude};`
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        const issPosUrl = "https://api.wheretheiss.at/v1/satellites/25544";
+        fetch(issPosUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            const issLat = data.latitude;
+            const issLng = data.longitude;
+
+            // update distance between user and ISS
+            const dist = distance(userLat, userLng, issLat, issLng).toFixed(0);
+            document.getElementById(
+              "distance"
+            ).textContent = `Distance to ISS: ${dist} meters`;
+
+            // update ISS position
+            const spaceStation = document.getElementById("space-station");
+            const altitude = data.altitude * 1000; // convert to meters
+spaceStation.setAttribute(
+"position",
+'${altitude * Math.sin(issLat)} ${altitude} ${altitude * Math.cos(issLat)}'
+);
+
+        // update text
+        const text = document.querySelector(
+          '[gps-entity-place="latitude: 0; longitude: 0;"]'
         );
-
-        const element = document.getElementById("latitude-longitude");
-        element.textContent = `Latitude: ${latitude} °, Longitude: ${longitude} °`;
+        text.setAttribute("value", "International Space Station");
+        text.setAttribute(
+          "gps-entity-place",
+          `latitude: ${issLat}; longitude: ${issLng};`
+        );
+      })
+      .catch((error) => {
+        console.error(error);
       });
-    </script>
-  </body>
-</html>
+  });
 
+  // function to calculate distance between two lat/lng points
+  function distance(lat1, lng1, lat2, lng2) {
+    const R = 6371e3; // metres
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) *
+        Math.cos(φ2) *
+        Math.sin(Δλ / 2) *
+        Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    const d = R * c;
+
+    return d;
+  }
+</script>
+</body>
+</html>
