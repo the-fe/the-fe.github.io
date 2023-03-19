@@ -43,14 +43,11 @@
   </head>
   <body>
     <a-scene
-  embedded
-  vr-mode-ui="enabled: false"
-  arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
-  renderer="Webgl"
-  environment="preset: forest; groundColor: #243941; grid: cross; lightPosition: 0 2 4"
-  loading-screen="enabled: false"
-  sky="src: https://www.nasa.gov/specials/3d/assets/ISS_stationary.glb; color: #000"
-
+      embedded
+      vr-mode-ui="enabled: false"
+      arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+      renderer="Webgl"
+    >
       <a-camera gps-camera rotation-reader> </a-camera>
       <a-text
         value="This content will always face you."
